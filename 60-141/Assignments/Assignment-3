@@ -1,0 +1,239 @@
+/*
+	NAME: HARSHDIP SINGH DEOGAN
+	STUDENT ID: 104924628
+*/
+//HEADER FILES
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <time.h>
+#include <string.h>
+
+#define MAX 100									//Max 100 number of tweets can be written
+
+//The struct definition of Simple Tweet
+struct simpletweet
+{
+	int id;
+	char username[21];
+	char created_at[51];
+	char text[141];
+};
+typedef struct simpletweet SimpleTweet;
+
+
+//PROTOTYPES
+void CreateTweet(SimpleTweet *ptrEmp, int id, char username[]);
+void DisplayTweets(const SimpleTweet e[], int num_tweets);
+void SaveTweet(const SimpleTweet e[], const char *FileName);
+void SearchTweet(SimpleTweet e[], int id, int counter, int foundflag[]);
+void LoadTweets(const SimpleTweet e[], const char *FileName);
+
+
+//Global variable to count number of tweets
+int number;
+
+
+//MAIN FUNCTION STARTS HERE
+int main(){
+
+	SimpleTweet tweet[MAX];
+	
+	int menu, i = 0;
+	char user[21];
+	int id = 1000;
+	int substringflag[MAX], substringCounter;
+
+
+	//User enters the username
+	printf("Please enter your username: ");
+	fgets (user, 20, stdin);
+
+
+	printf("\nWelcome %sLet's start tweeting...\n", user);
+
+	//A do loop showing the Main Menu and carrying out functions, until user exits (number 6)
+	do{
+		printf("\n1. Create a new Tweet\t\t2. Search Tweets\n");
+		printf("3. Display Tweets\t\t4. Save Tweets to file\n");
+		printf("5. Load Tweets from file\t6. Exit\n\n");
+		printf(">>>");
+		scanf("%d", &menu);
+		getchar();
+
+		switch (menu){
+			case 1: {
+				CreateTweet(&tweet[i], id, user);					//Creating the tweet
+				i++;
+				number = i;
+				id++;
+				break;			
+			}
+
+			case 2: {												//Searches the keywords in all the tweets
+
+				SearchTweet(tweet, id, substringCounter, substringflag);
+				break;
+				
+			}
+
+			case 3: {
+				DisplayTweets(tweet, i);							//Displaying all the tweets
+				break;
+			}
+
+			case 4: {												//Saving all the tweets in user desired name of txt file
+
+				FILE* fptr;
+				char file_name[21], fileName[21];
+				printf("Please enter a file name: ");
+				scanf("%s", file_name);
+				strcpy(fileName, file_name);
+				SaveTweet(tweet, fileName);
+				break;
+			}
+
+			case 5: {												//Loading the saved tweets from a user typed file
+				FILE* fptr;
+				char file_name[21], fileName[21];
+				scanf("%s", file_name);
+				strcpy(fileName, file_name);
+				LoadTweets(tweet, fileName);
+				
+			}
+		}
+	} while (menu != 6);
+
+	printf("Good Bye!\n");
+}
+
+
+//FUNCTIONS START HERE
+
+/*
+	Creates a tweet
+	Input: User enters the tweet
+	Output: Records the tweet and displays the time, unique Id, time and username
+*/
+void CreateTweet(SimpleTweet* tweet, int id, char username[])
+{
+	time_t t;
+    time(&t);
+	tweet->id = id;
+	//tweet->username[21] = username[21];
+	strcpy(tweet->username, username);
+	strcpy(tweet->created_at, ctime(&t));
+
+	tweet->created_at[strlen(tweet->created_at) - 1] = 0;
+
+	printf("Text: ");
+	scanf("%140[^\n]s", tweet->text);
+	printf("New tweet created:\n");
+	printf("Id: %d\t", tweet->id);
+	printf("Created at %s by user: %s", ctime(&t), username);
+	printf("Text: %s\n", tweet->text);
+	
+}
+
+
+/*
+	Searches for a keyword in current tweets
+	Input: Asks for the keyword to search
+	Output: Gives the number of tweets with desired string found and displays them
+*/
+void SearchTweet(SimpleTweet e[], int id, int counter, int foundflag[]){
+
+	counter = 0;
+	for (int i = 0; i < MAX; ++i)
+	{
+		foundflag[i] = 0;
+	}
+
+	char searchTerm[140];
+	printf("Type term to search: \n");
+	scanf("%130[^\n]s", searchTerm);
+
+	for (int i = 0; i < number; i++)
+	{
+		if(strstr(e[i].text, searchTerm) != NULL){
+			counter++;
+			foundflag[i] = 1;
+		}
+	}
+
+	printf("Desired text was found in %d tweets.\n", counter);
+	for (int i = 0; i < number; ++i)
+	{
+		if(foundflag[i] == 1){
+			printf("Id: %d, Created at %s by %s \nTweet: %s\n", e[i].id, e[i].created_at, e[i].username, e[i].text);
+		}
+	}
+
+}
+
+/*
+	Displays the tweets recorded till now
+	Input: No input
+	Output: Displays the tweets and their details
+*/
+void DisplayTweets(const SimpleTweet e[], int num_tweets)
+{
+	int j;
+	printf("Displaying all %d tweet(s)\n", num_tweets);
+
+	for (j = 0; j < number; j++)
+	{
+		printf("Id: %d\t", e[j].id);
+		printf("Created at: %s by %s", e[j].created_at, e[j].username);
+		printf("%s\n", e[j].text);
+	}
+
+}
+
+/*
+	Saves the tweets in an external file
+	Input: From main, name of the file to be saved in
+	Output: Makes a file and writes the details
+*/
+
+void SaveTweet(const SimpleTweet e[], const char *FileName)
+{
+	int i;
+	FILE* file = fopen(FileName, "w");
+	if (file != NULL)
+	{
+		for (i = 0; i < number; i++)
+		{
+			fprintf(file, "%d %s", e[i].id, e[i].created_at);
+			//fprintf("\n");
+			fprintf(file, "%s",e[i].text);
+		}
+		fclose(file);
+	}
+	else
+	{
+		printf("File not opened\n");
+	}
+	printf("%d tweet(s) saved in file.\n", number);
+}
+
+//Load Tweets, not working properly, I tried my best
+void LoadTweets(const SimpleTweet e[], const char *FileName){
+	int i;
+	FILE* file = fopen(FileName, "r");
+	if (file != NULL)
+	{
+		if(!feof(file)){
+			for (i = 0; i < number; i++){
+				fscanf(file, "%d %s\n", e[i].id, e[i].text);
+			}
+		}
+		fclose(file);
+
+	}
+	else
+	{
+		printf("File not opened\n");
+	}
+	printf("%d tweet(s) loaded from file.\n", number);
+}
